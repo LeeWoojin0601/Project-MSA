@@ -1,0 +1,107 @@
+service: sales-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: ap-northeast-2
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sns:Publish
+            - sns:ListSubscriptionsByTopic
+            - sns:Unsubscribe
+            - sns:Subscribe
+          Resource: !Ref StockEmptyTopic
+
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ListQueueTags
+            - sqs:Unsubscribe
+            - sqs:Subscribe
+            - sqs:ReceiveMessage
+          Resource: !GetAtt StockQueue.Arn
+
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ListQueueTags
+            - sqs:Unsubscribe
+            - sqs:Subscribe
+            - sqs:ReceiveMessage
+          Resource: !GetAtt DeadLQ.Arn
+
+resources:
+  Resources:
+    StockEmptyTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: stock_empty
+
+    StockQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: stock_queue
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt DeadLQ.Arn
+          maxReceiveCount: 3
+
+    StockSnsSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint:
+          Fn::GetAtt:
+            - StockQueue
+            - Arn
+        Protocol: sqs
+        TopicArn:
+          Ref: StockEmptyTopic
+    
+    DeadLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: DLQ
+
+  Outputs:
+    StockEmptyTopicArn:
+      Value:
+        Ref: StockEmptyTopic
+      Export:
+        Name: StockEmptyTopicArn
+    StockQueueArn:
+      Value:
+        Ref: StockQueue
+      Export:
+        Name: StockQueueArn
+    DeadLQArn:
+      Value:
+        Ref: DeadLQ
+      Export:
+        Name: DeadLQArn
+
+functions:
+  3rd-project:
+    handler: handler.handler
+    events:
+      - httpApi: '*'
+    environment:
+      TOPIC_ARN: 
+        Ref: StockEmptyTopic
+      STOCK_QUEUE_ARN:
+        Fn::GetAtt:
+          - StockQueue
+          - Arn
+  DLQ-lambda:
+    handler: DLQ.handler
+    events:
+      - sqs:
+          arn: !GetAtt DeadLQ.Arn
+
+  stock-lambda:
+    handler: stock-lambda.consumer
+    events:
+      - sqs:
+          arn: !GetAtt StockQueue.Arn

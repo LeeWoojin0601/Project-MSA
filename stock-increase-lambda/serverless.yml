@@ -1,0 +1,24 @@
+service: stock-increase-lambda
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: ap-northeast-2
+  # iam:
+  #   role:
+  #     statements:
+  #       - Effect: Allow
+  #         Action:
+  #           - sqs:SendMessage
+  #           - sqs:ListQueueTags
+  #           - sqs:Unsubscribe
+  #           - sqs:Subscribe
+  #           - sqs:ReceiveMessage
+  #         Resource: !ImportValue StockQueueArn
+
+functions:
+  api:
+    handler: handler.handler
+    events:
+      - httpApi: '*'
