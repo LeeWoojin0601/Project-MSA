@@ -7,17 +7,19 @@
 
 ## Step 1 : Lambda 서버(Sales API) - DB 연결
 
-![step1](https://contents-img-jeonghun.s3.ap-northeast-2.amazonaws.com/project3/project3-project-step1.png)
+![image](https://github.com/LeeWoojin0601/Project-MSA/assets/84060623/c4cb599f-7eff-43b2-9c92-86826ae63809)
 
 > **✅ 확인 포인트: 요청시 재고 감소 로그 / 재고 0 도달 → 재고없음 로그**
 
 ## Step 2 : “재고없음” 메세지 전달 시스템 구성
-![step2](https://contents-img-jeonghun.s3.ap-northeast-2.amazonaws.com/project3/project3-project-step2.png)
+
+![image](https://github.com/LeeWoojin0601/Project-MSA/assets/84060623/70a2ecf1-4ba3-4320-bd4e-2d2cc4081fdf)
 
 > **✅ 확인 포인트 : 재고가 없는 경우 stock_queue에 메세지가 들어온 것을 확인**
 
 ## Step 3 : 메세지를 레거시 시스템(Factory API)로 보내줄 Lambda 구성 및 DLQ 추가
-![step3](https://contents-img-jeonghun.s3.ap-northeast-2.amazonaws.com/project3/project3-project-step3.png)
+
+![image](https://github.com/LeeWoojin0601/Project-MSA/assets/84060623/2aa9788d-fabc-4f1a-a7b0-dd643cb38049)
 
 > **✅ 확인 포인트 : stock_queue에서 메세지 사라짐, stock_lambda에서 생성된 로그 확인**
 
